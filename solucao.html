@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Converse com o Xandinho</title>
+  <meta name="description" content="Responda algumas perguntas e receba um relatório com os programas sociais que a sua família provavelmente tem direito.">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,500..800&amp;display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/comum.js"></script>
+</head>
+<body>
+  <header class="topo">
+    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+    <div class="topo__barra">
+      <a class="marca" href="index.html"><img src="img/xandinho.svg" alt="" width="32" height="32"> Xandinho</a>
+      <button class="menu-botao" type="button" aria-expanded="false" aria-controls="navegacao">Menu</button>
+      <div class="navegacao" id="navegacao">
+        <nav aria-label="Principal">
+          <ul class="menu">
+            <li><a href="index.html">Início</a></li>
+            <li><a href="solucao.html" aria-current="page">Solução</a></li>
+            <li><a href="impacto.html">Impacto</a></li>
+            <li><a href="equipe.html">Equipe</a></li>
+          </ul>
+        </nav>
+        <a class="botao botao--primario botao--pequeno" href="solucao.html">Descobrir meus direitos</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section class="pagina-topo" aria-labelledby="titulo-pagina">
+      <div class="conteiner">
+        <h1 class="pagina-topo__titulo" id="titulo-pagina">Converse com o Xandinho</h1>
+        <p class="pagina-topo__texto">Responda algumas perguntas e receba um relatório com os programas sociais que a sua família provavelmente tem direito.</p>
+      </div>
+    </section>
+
+    <section class="secao secao--conversa" aria-label="Conversa com o Xandinho">
+      <div class="conteiner">
+        <div class="conversa">
+          <div class="conversa__topo">
+            <img class="conversa__avatar" src="img/xandinho.svg" alt="" width="48" height="48">
+            <div class="conversa__quem">
+              <p class="conversa__nome">Xandinho</p>
+              <p class="conversa__papel">Seu assistente de direitos</p>
+            </div>
+            <button type="button" class="botao botao--contorno botao--pequeno" id="recomecar">Recomeçar</button>
+          </div>
+          <div class="conversa__progresso">
+            <p id="progresso-texto" aria-live="polite">Pergunta 1</p>
+            <progress id="progresso" max="15" value="0" aria-labelledby="progresso-texto"></progress>
+          </div>
+          <ol class="conversa__mensagens" id="mensagens" role="log" aria-live="polite" aria-label="Mensagens da conversa"></ol>
+          <div class="conversa__entrada" id="entrada" aria-label="Sua resposta"></div>
+        </div>
+
+        <section class="relatorio" id="relatorio" hidden aria-labelledby="relatorio-titulo">
+          <div id="relatorio-conteudo"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <div class="conteiner rodape__grade">
+      <p>O Xandinho é um protótipo acadêmico da Global Solution 2026.2 da FIAP. Ele orienta, mas não garante o acesso a nenhum benefício.</p>
+      <ul class="rodape__links">
+        <li><a href="index.html">Início</a></li>
+        <li><a href="solucao.html">Solução</a></li>
+        <li><a href="impacto.html">Impacto</a></li>
+        <li><a href="equipe.html">Equipe</a></li>
+      </ul>
+    </div>
+  </footer>
+  <script src="js/consultas.js"></script>
+  <script src="js/direitos.js"></script>
+  <script src="js/conversa.js"></script>
+</body>
+</html>

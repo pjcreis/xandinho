@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Equipe | Xandinho</title>
+  <meta name="description" content="Quem fez o Xandinho e como falar com a equipe.">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,500..800&amp;display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/comum.js"></script>
+</head>
+<body>
+  <header class="topo">
+    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+    <div class="topo__barra">
+      <a class="marca" href="index.html"><img src="img/xandinho.svg" alt="" width="32" height="32"> Xandinho</a>
+      <button class="menu-botao" type="button" aria-expanded="false" aria-controls="navegacao">Menu</button>
+      <div class="navegacao" id="navegacao">
+        <nav aria-label="Principal">
+          <ul class="menu">
+            <li><a href="index.html">Início</a></li>
+            <li><a href="solucao.html">Solução</a></li>
+            <li><a href="impacto.html">Impacto</a></li>
+            <li><a href="equipe.html" aria-current="page">Equipe</a></li>
+          </ul>
+        </nav>
+        <a class="botao botao--primario botao--pequeno" href="solucao.html">Descobrir meus direitos</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section class="pagina-topo" aria-labelledby="titulo-pagina">
+      <div class="conteiner">
+        <h1 class="pagina-topo__titulo" id="titulo-pagina">Equipe</h1>
+        <p class="pagina-topo__texto">Estudantes do 1º ano de Engenharia de Software da FIAP, na Global Solution 2026.2.</p>
+      </div>
+    </section>
+
+    <section class="secao" aria-labelledby="titulo-integrantes">
+      <div class="conteiner">
+        <h2 class="visualmente-oculto" id="titulo-integrantes">Integrantes</h2>
+        <ul class="pessoas">
+          <li class="bloco"><span class="pessoa__inicial" aria-hidden="true">1</span><h3>Integrante 1</h3><p>RM 000000</p></li>
+          <li class="bloco"><span class="pessoa__inicial" aria-hidden="true">2</span><h3>Integrante 2</h3><p>RM 000000</p></li>
+          <li class="bloco"><span class="pessoa__inicial" aria-hidden="true">3</span><h3>Integrante 3</h3><p>RM 000000</p></li>
+          <li class="bloco"><span class="pessoa__inicial" aria-hidden="true">4</span><h3>Integrante 4</h3><p>RM 000000</p></li>
+          <li class="bloco"><span class="pessoa__inicial" aria-hidden="true">5</span><h3>Integrante 5</h3><p>RM 000000</p></li>
+        </ul>
+        <ul class="lista-limpa">
+          <li><a href="#">Vídeo pitch (link a incluir)</a></li>
+          <li><a href="#">Repositório no GitHub (link a incluir)</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="secao quadriculado" aria-labelledby="titulo-contato">
+      <div class="conteiner">
+        <div class="cartao-form">
+          <h2 class="secao__titulo" id="titulo-contato">Fale com a equipe</h2>
+          <p>Encontrou uma regra desatualizada ou quer sugerir um programa? Ao enviar, o WhatsApp abre com a sua mensagem pronta para a equipe.</p>
+          <div class="aviso" id="contato-erros" tabindex="-1" hidden aria-live="polite"></div>
+          <form class="formulario" id="form-contato" novalidate>
+            <div class="formulario__linha">
+              <div class="campo">
+                <label for="contato-nome">Nome</label>
+                <input type="text" id="contato-nome" name="nome" autocomplete="name" aria-describedby="erro-contato-nome">
+                <p class="campo__erro" id="erro-contato-nome"></p>
+              </div>
+              <div class="campo">
+                <label for="contato-assunto">Assunto</label>
+                <select id="contato-assunto" name="assunto" aria-describedby="erro-contato-assunto">
+                  <option value="">Escolha um assunto</option>
+                  <option value="regra">Regra desatualizada</option>
+                  <option value="programa">Sugestão de programa</option>
+                  <option value="duvida">Dúvida sobre o relatório</option>
+                  <option value="outro">Outro assunto</option>
+                </select>
+                <p class="campo__erro" id="erro-contato-assunto"></p>
+              </div>
+            </div>
+            <div class="campo">
+              <label for="contato-mensagem">Mensagem</label>
+              <textarea id="contato-mensagem" name="mensagem" rows="5" aria-describedby="erro-contato-mensagem"></textarea>
+              <p class="campo__erro" id="erro-contato-mensagem"></p>
+            </div>
+            <div class="acoes"><button type="submit" class="botao botao--primario">Enviar pelo WhatsApp</button></div>
+          </form>
+          <div class="aviso aviso--sucesso" id="contato-sucesso" tabindex="-1" hidden>
+            <p><strong>Mensagem pronta.</strong> O WhatsApp foi aberto em outra aba. Se não abriu, <a id="contato-link" href="#" target="_blank" rel="noopener">toque aqui</a>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <div class="conteiner rodape__grade">
+      <p>O Xandinho é um protótipo acadêmico da Global Solution 2026.2 da FIAP. Ele orienta, mas não garante o acesso a nenhum benefício.</p>
+      <ul class="rodape__links">
+        <li><a href="index.html">Início</a></li>
+        <li><a href="solucao.html">Solução</a></li>
+        <li><a href="impacto.html">Impacto</a></li>
+        <li><a href="equipe.html">Equipe</a></li>
+      </ul>
+    </div>
+  </footer>
+  <script src="js/contato.js"></script>
+</body>
+</html>

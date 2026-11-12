@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Xandinho: descubra os direitos da sua família</title>
+  <meta name="description" content="O Xandinho mostra em poucos minutos quais programas sociais a sua família provavelmente tem direito.">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,500..800&amp;display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/comum.js"></script>
+</head>
+<body>
+  <header class="topo">
+    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+    <div class="topo__barra">
+      <a class="marca" href="index.html"><img src="img/xandinho.svg" alt="" width="32" height="32"> Xandinho</a>
+      <button class="menu-botao" type="button" aria-expanded="false" aria-controls="navegacao">Menu</button>
+      <div class="navegacao" id="navegacao">
+        <nav aria-label="Principal">
+          <ul class="menu">
+            <li><a href="index.html" aria-current="page">Início</a></li>
+            <li><a href="solucao.html">Solução</a></li>
+            <li><a href="impacto.html">Impacto</a></li>
+            <li><a href="equipe.html">Equipe</a></li>
+          </ul>
+        </nav>
+        <a class="botao botao--primario botao--pequeno" href="solucao.html">Descobrir meus direitos</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section class="abertura quadriculado" aria-labelledby="titulo-abertura">
+      <div class="conteiner abertura__grade">
+        <div>
+          <h1 class="abertura__titulo" id="titulo-abertura">Muita gente tem direito e não sabe.</h1>
+          <p class="abertura__texto">O Xandinho descobre, em poucos minutos, quais programas sociais a sua família provavelmente tem direito e entrega um relatório com o que fazer em cada um.</p>
+          <p class="abertura__publico">Feito para famílias de baixa renda, pessoas idosas e quem trabalha por conta na Grande Vitória.</p>
+          <a class="botao botao--primario" href="solucao.html">Descobrir meus direitos</a>
+        </div>
+        <figure class="previa" aria-label="Exemplo de conversa com o Xandinho">
+          <div class="previa__janela">
+            <div class="previa__topo"><img src="img/xandinho.svg" alt="" width="36" height="36"> Xandinho</div>
+            <p class="previa__msg previa__msg--x">Quantas pessoas moram na sua casa?</p>
+            <p class="previa__msg previa__msg--u">3</p>
+            <p class="previa__msg previa__msg--x">E quanto a família ganha por mês?</p>
+            <p class="previa__msg previa__msg--u">R$ 2.200</p>
+            <div class="previa__resultado">
+              <p class="previa__status">Relatório pronto</p>
+              <p class="previa__valor">7 direitos</p>
+              <p class="previa__legenda">encontrados para esta família.</p>
+            </div>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <section class="secao" aria-labelledby="titulo-problema">
+      <div class="conteiner">
+        <h2 class="secao__titulo" id="titulo-problema">O direito existe. O caminho até ele, não.</h2>
+        <div class="grade">
+          <article class="bloco bloco--destaque larg-3">
+            <p class="bloco__numero">260 mil</p>
+            <h3>domicílios no Espírito Santo têm direito ao desconto na conta de água e não usam.</h3>
+            <p class="bloco__fonte">Fonte: <a href="https://tribunaonline.com.br/economia/lei-da-direito-a-reducao-na-conta-de-agua-para-260-mil-familias-do-es-286834" target="_blank" rel="noopener">Tribuna Online, com dados da Arsp, janeiro de 2026</a></p>
+          </article>
+          <article class="bloco larg-3">
+            <h3>Como o Xandinho resolve</h3>
+            <ol class="passos">
+              <li class="passo"><p>Você responde perguntas simples.</p></li>
+              <li class="passo"><p>Ele confere as regras de cada programa.</p></li>
+              <li class="passo"><p>Você recebe o que fazer, o que levar e onde ir.</p></li>
+            </ol>
+          </article>
+        </div>
+        <ul class="ods-lista" aria-label="Objetivos de Desenvolvimento Sustentável atendidos">
+          <li>ODS 10: redução das desigualdades</li>
+          <li>ODS 11: acesso a água e energia</li>
+          <li>ODS 3: saúde</li>
+          <li>ODS 4: educação</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="secao quadriculado" aria-labelledby="titulo-programas">
+      <div class="conteiner">
+        <h2 class="secao__titulo" id="titulo-programas">O que o Xandinho verifica</h2>
+        <ul class="programas" id="lista-programas"></ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <div class="conteiner rodape__grade">
+      <p>O Xandinho é um protótipo acadêmico da Global Solution 2026.2 da FIAP. Ele orienta, mas não garante o acesso a nenhum benefício.</p>
+      <ul class="rodape__links">
+        <li><a href="index.html">Início</a></li>
+        <li><a href="solucao.html">Solução</a></li>
+        <li><a href="impacto.html">Impacto</a></li>
+        <li><a href="equipe.html">Equipe</a></li>
+      </ul>
+    </div>
+  </footer>
+  <script src="js/direitos.js"></script>
+  <script src="js/inicio.js"></script>
+</body>
+</html>
