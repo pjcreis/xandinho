@@ -74,5 +74,4 @@ Todo relatório termina com um aviso: a orientação é automática, baseada nas
 
 ## Vídeo pitch
 
-Link a incluir.# xandinho
-# xandinho
+Link a incluir.
