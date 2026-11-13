@@ -1,4 +1,6 @@
-/* Conversa com o Xandinho e geração do relatório de direitos. */
+/* Conversa com o Xandinho e geração do relatório de direitos.
+   É um roteiro fixo de perguntas, sem inteligência artificial por trás.
+   Nada do que a pessoa digita sai do navegador. */
 (function (Xandinho) {
   'use strict';
 
@@ -35,6 +37,9 @@
     { id: 'cadastro', tipo: 'opcoes', resumo: 'Cadastro Único',
       texto: function () { return 'A família está no Cadastro Único, o cadastro dos programas sociais do governo?'; },
       opcoes: function () { return [['atualizado', 'Sim, atualizado nos últimos 2 anos'], ['antigo', 'Sim, mas faz mais de 2 anos'], ['nao', 'Não'], ['naosei', 'Não sei']]; } },
+    { id: 'bolsaFamilia', tipo: 'opcoes', resumo: 'Recebe Bolsa Família',
+      texto: function () { return 'A família já recebe o Bolsa Família?'; },
+      opcoes: function () { return [['sim', 'Sim'], ['nao', 'Não'], ['naosei', 'Não sei']]; } },
     { id: 'idade', tipo: 'opcoes', resumo: 'Pessoa com 60 anos ou mais',
       texto: function () { return 'Alguém na casa tem 60 anos ou mais?'; },
       opcoes: function () { return [['ninguem', 'Ninguém'], ['60a64', 'Sim, entre 60 e 64 anos'], ['65', 'Sim, 65 anos ou mais']]; } },
@@ -86,6 +91,7 @@
     return elemento;
   }
 
+  /* Deixa só letras, espaços, hífen e apóstrofo. "Apolônio." vira "Apolônio". */
   function limparTexto(texto) {
     return texto.replace(/[^A-Za-zÀ-ÿ\s'-]/g, '').replace(/\s+/g, ' ').trim();
   }
@@ -116,7 +122,19 @@
   /* ---------- Mensagens ---------- */
   var mensagens, entrada;
 
-  function rolar(no) { no.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+  /* Rola a página para a última mensagem ficar visível acima da área de resposta,
+     que fica presa no rodapé da tela. Mensagens altas aparecem a partir do começo. */
+  function rolar(no) {
+    var alvo = no || mensagens.lastElementChild;
+    if (!alvo) { return; }
+    var topoFixo = document.querySelector('.topo').offsetHeight;
+    var areaVisivel = window.innerHeight - entrada.offsetHeight - topoFixo - 32;
+    var caixa = alvo.getBoundingClientRect();
+    var destino = caixa.height > areaVisivel
+      ? window.scrollY + caixa.top - topoFixo - 16
+      : window.scrollY + caixa.bottom - (window.innerHeight - entrada.offsetHeight - 16);
+    window.scrollTo({ top: Math.max(0, destino), behavior: 'smooth' });
+  }
 
   /* Mostra "digitando" por um instante e depois a mensagem do Xandinho. */
   function falar(conteudo, marca) {
@@ -173,6 +191,7 @@
       });
       entrada.appendChild(grupo);
       grupo.querySelector('button').focus({ preventScroll: true });
+      rolar();
       return;
     }
 
@@ -217,6 +236,7 @@
       entrada.appendChild(criar('div', { classe: 'respostas' }, [botao(pergunta.alternativa[1], function () { responder(pergunta, pergunta.alternativa[0]); })]));
     }
     campo.focus({ preventScroll: true });
+    rolar();
   }
 
   /* ---------- Fluxo da conversa ---------- */
@@ -262,6 +282,7 @@
       ]);
       entrada.appendChild(grupo);
       grupo.querySelector('button').focus({ preventScroll: true });
+      rolar();
     });
   }
 
@@ -286,6 +307,7 @@
       rendaPorPessoa: r.renda / r.pessoas,
       sm: estado.salarioMinimo.valor,
       cadastro: r.cadastro,
+      bolsaFamilia: r.bolsaFamilia,
       pessoas: r.pessoas,
       idoso60: r.idade !== 'ninguem',
       idoso65: r.idade === '65',
@@ -301,26 +323,54 @@
     };
   }
 
-  var SITUACAO = { tem: 'Provável direito', pode: 'Falta um passo' };
+  var SITUACAO = { tem: 'Provável direito', pode: 'Falta um passo', conferir: 'Vale conferir', emdia: 'Já está em dia' };
+  var ORDEM = { tem: 0, pode: 1, conferir: 2, emdia: 3 };
+  var SELO = { tem: 'selo--sim', pode: 'selo--atencao', conferir: 'selo--info', emdia: 'selo--neutro' };
 
   function cartao(resultado) {
     var item = resultado.item;
     return criar('li', { classe: 'direito' }, [
       criar('div', { classe: 'direito__topo' }, [
         criar('h4', { classe: 'direito__nome', texto: item.nome }),
-        criar('span', { classe: 'selo ' + (resultado.situacao === 'tem' ? 'selo--sim' : 'selo--atencao'), texto: SITUACAO[resultado.situacao] })
+        criar('span', { classe: 'selo ' + SELO[resultado.situacao], texto: SITUACAO[resultado.situacao] })
       ]),
       criar('p', { texto: item.oQueE }),
       resultado.motivo ? criar('p', { classe: 'direito__motivo', texto: resultado.motivo }) : null,
       criar('p', null, [criar('strong', { texto: 'Como pedir: ' }), item.comoPedir]),
       item.documentos.length ? criar('p', null, [criar('strong', { texto: 'O que levar: ' }), item.documentos.join(', ') + '.']) : null,
       criar('p', null, [criar('strong', { texto: 'Onde: ' }), item.onde + '.']),
-      criar('p', { classe: 'direito__fonte' }, ['Fonte: ', criar('a', { href: item.fonte.url, target: '_blank', rel: 'noopener', texto: item.fonte.titulo }), ', consultada em ' + item.consultadoEm + '.'])
+      linhaDeFontes(item.fontes)
     ]);
   }
 
+  function linhaDeFontes(fontes) {
+    var linha = criar('p', { classe: 'direito__fonte' }, [fontes.length > 1 ? 'Fontes: ' : 'Fonte: ']);
+    fontes.forEach(function (fonte, i) {
+      if (i > 0) { linha.append(' e '); }
+      linha.append(criar('a', { href: fonte.url, target: '_blank', rel: 'noopener', texto: fonte.titulo }));
+    });
+    linha.append(', consultadas em novembro de 2026.');
+    return linha;
+  }
+
   function ordenar(lista) {
-    return lista.slice().sort(function (a, b) { return (a.situacao === 'tem' ? 0 : 1) - (b.situacao === 'tem' ? 0 : 1); });
+    return lista.slice().sort(function (a, b) { return ORDEM[a.situacao] - ORDEM[b.situacao]; });
+  }
+
+  /* Frase-resumo, como "2 prováveis direitos, 3 com um passo pendente e 1 já em dia." */
+  function sintese(lista) {
+    var nomes = {
+      tem: ['provável direito', 'prováveis direitos'],
+      pode: ['com um passo pendente', 'com um passo pendente'],
+      conferir: ['para conferir', 'para conferir'],
+      emdia: ['já em dia', 'já em dia']
+    };
+    var partes = ['tem', 'pode', 'conferir', 'emdia'].map(function (s) {
+      var n = lista.filter(function (x) { return x.situacao === s; }).length;
+      return n ? n + ' ' + nomes[s][n === 1 ? 0 : 1] : null;
+    }).filter(Boolean);
+    var ultima = partes.pop();
+    return (partes.length ? partes.join(', ') + ' e ' : '') + ultima + '.';
   }
 
   function gerarRelatorio() {
@@ -331,12 +381,13 @@
     var direitos = ordenar(resultados.filter(function (x) { return x.item.categoria === 'direito' && x.situacao !== 'nao'; }));
     var oportunidades = ordenar(resultados.filter(function (x) { return x.item.categoria === 'oportunidade' && x.situacao !== 'nao'; }));
     var foraDoPerfil = resultados.filter(function (x) { return x.situacao === 'nao'; });
-    var dependemDoCadastro = direitos.filter(function (x) { return x.motivo && x.motivo.indexOf('Cadastro Único') > -1; }).length;
-    var provaveis = direitos.filter(function (x) { return x.situacao === 'tem'; }).length;
+    var dependemDoCadastro = direitos.filter(function (x) {
+      return x.situacao === 'pode' && x.item.id !== 'cadastro-unico' && x.motivo && x.motivo.indexOf('Cadastro Único') > -1;
+    }).length;
 
     var area = porId('relatorio-conteudo');
     area.textContent = '';
-    area.append(
+    var secoes = [
       criar('header', { classe: 'relatorio__cabecalho' }, [
         criar('img', { src: 'img/xandinho.svg', alt: '', width: '48', height: '48' }),
         criar('div', null, [
@@ -354,7 +405,8 @@
         criar('p', null, [criar('strong', { texto: 'Renda por pessoa: ' + moeda(ctx.rendaPorPessoa) + '. ' }), 'Salário mínimo usado: ' + moeda(ctx.sm) + ' (' + estado.salarioMinimo.fonte + ').'])
       ]),
       criar('section', { classe: 'relatorio__bloco' }, [
-        criar('h3', { texto: 'Seus direitos (' + direitos.length + ')' }),
+        criar('h3', { texto: direitos.length + (direitos.length === 1 ? ' orientação' : ' orientações') + ' para a sua família' }),
+        direitos.length ? criar('p', { classe: 'relatorio__nota', texto: 'São ' + sintese(direitos) }) : null,
         direitos.length ? criar('ul', { classe: 'direitos' }, direitos.map(cartao))
           : criar('p', { texto: 'Pelas respostas, não encontrei programas do catálogo para a sua família agora. O CRAS da sua cidade pode indicar outros apoios.' })
       ]),
@@ -371,12 +423,13 @@
         criar('h3', { texto: 'Importante' }),
         criar('p', { texto: 'Este relatório é uma orientação gerada automaticamente a partir das informações que você forneceu e das regras públicas consultadas nas datas indicadas. Ele não garante o acesso a nenhum benefício e não substitui a análise dos órgãos responsáveis, que podem pedir documentos e aplicar outros critérios. As regras dos programas podem mudar. Confirme sempre nos canais oficiais ou no CRAS da sua cidade. Os responsáveis por esta ferramenta não se responsabilizam por decisões tomadas com base neste relatório nem pelo resultado de pedidos feitos aos órgãos.' })
       ])
-    );
+    ];
+    /* Seções opcionais ficam como null quando não se aplicam: só as existentes entram na página. */
+    area.append.apply(area, secoes.filter(Boolean));
     porId('relatorio').hidden = false;
 
-    var faltam = direitos.length - provaveis;
-    falar('Pronto, ' + r.nome + '! Encontrei ' + provaveis + (provaveis === 1 ? ' direito provável' : ' direitos prováveis') +
-      ' e ' + faltam + (faltam === 1 ? ' que depende' : ' que dependem') + ' de um passo. O seu relatório está logo abaixo.', 'resultado').then(function () {
+    falar('Pronto, ' + r.nome + '! Preparei ' + direitos.length + (direitos.length === 1 ? ' orientação' : ' orientações') +
+      ' para a sua família. O relatório está logo abaixo.', 'resultado').then(function () {
       estado.ocupado = false;
       limparEntrada();
       entrada.appendChild(criar('div', { classe: 'respostas' }, [
@@ -402,7 +455,7 @@
     mensagens.textContent = '';
     porId('relatorio').hidden = true;
     atualizarProgresso();
-    falar('Oi! Eu sou o Xandinho. Em poucos minutos, descubro quais programas sociais a sua família provavelmente tem direito e preparo um relatório com o que fazer em cada um. Nada do que você digitar sai do seu navegador.', 'inicio')
+    falar('Oi! Eu sou o Xandinho. Em poucos minutos, descubro quais programas sociais podem atender a sua família e preparo um relatório com o que fazer em cada caso. Nada do que você digitar sai do seu navegador.', 'inicio')
       .then(function () {
         limparEntrada();
         entrada.appendChild(criar('div', { classe: 'respostas' }, [botao('Vamos começar', function () { limparEntrada(); perguntar(); }, true)]));

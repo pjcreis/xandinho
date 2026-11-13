@@ -1,30 +1,37 @@
 /* Catálogo de direitos e oportunidades que o Xandinho verifica (13 registros).
-   
-   Cada item tem uma função avaliar(ctx) que devolve:
-   - 'tem'  : pelas respostas, a família provavelmente tem direito
-   - 'pode' : pode ter direito, mas falta um passo (por exemplo, o Cadastro Único)
-   - 'nao'  : pelas respostas, não se encaixa agora
+   Regras consultadas em novembro de 2026, sempre que possível em páginas oficiais.
+
+   Cada item tem uma função avaliar(ctx) que devolve uma situação:
+   - 'tem'      : provável direito
+   - 'pode'     : falta um passo (por exemplo, fazer ou atualizar o Cadastro Único)
+   - 'conferir' : vale conferir, porque depende de seleção, avaliação ou de uma resposta "não sei"
+   - 'emdia'    : a família já tem ou já está em dia
+   - 'nao'      : pelas respostas, não se aplica agora
 
    ctx traz as respostas já tratadas:
    rendaPorPessoa, sm (salário mínimo), cadastro ('atualizado' | 'antigo' | 'nao' | 'naosei'),
-   pessoas, idoso60, idoso65, idosoRendaAte2SM, deficiencia, recebeBPC,
-   estudante, contaLuzNoNome, remedio, negocio, faturamentoAte360, dividasAcima80. */
+   bolsaFamilia ('sim' | 'nao' | 'naosei'), pessoas, idoso60, idoso65, idosoRendaAte2SM,
+   deficiencia, recebeBPC, estudante, contaLuzNoNome, remedio, negocio,
+   faturamentoAte360, dividasAcima80. */
 window.Xandinho = window.Xandinho || {};
 
 (function (Xandinho) {
   'use strict';
 
-  function dependeDoCadastro(ctx, mensagemSeTiver) {
-    if (ctx.cadastro === 'atualizado') {
-      return { situacao: 'tem', motivo: mensagemSeTiver || null };
-    }
-    var motivo = ctx.cadastro === 'antigo'
-      ? 'O Cadastro Único da família precisa ser atualizado (ele vale por 2 anos).'
-      : 'A família precisa estar no Cadastro Único.';
-    return { situacao: 'pode', motivo: motivo };
-  }
+  var NAO = { situacao: 'nao', motivo: null };
 
-  var nao = { situacao: 'nao', motivo: null };
+  /* Quase tudo depende do Cadastro Único atualizado. */
+  function dependeDoCadastro(ctx, seEstiverEmDia) {
+    if (ctx.cadastro === 'atualizado') {
+      return seEstiverEmDia || { situacao: 'tem', motivo: null };
+    }
+    return {
+      situacao: 'pode',
+      motivo: ctx.cadastro === 'antigo'
+        ? 'O Cadastro Único da família precisa ser atualizado (ele vale por 2 anos).'
+        : 'A família precisa estar no Cadastro Único.'
+    };
+  }
 
   Xandinho.direitos = [
     {
@@ -35,11 +42,10 @@ window.Xandinho = window.Xandinho || {};
       comoPedir: 'Procure o CRAS da sua cidade para fazer ou atualizar o cadastro. Atualize a cada 2 anos ou sempre que mudar a renda, o endereço ou quem mora na casa.',
       documentos: ['CPF ou título de eleitor do responsável pela família', 'Documento de todas as pessoas da casa', 'Comprovante de residência'],
       onde: 'CRAS da sua cidade (a prefeitura informa o endereço)',
-      fonte: { titulo: 'Ministério do Desenvolvimento e Assistência Social', url: 'https://www.gov.br/mds/pt-br/acoes-e-programas/bolsa-familia/informes/informe-bolsa-familia-112' },
-      consultadoEm: '11/2026',
+      fontes: [{ titulo: 'Ministério do Desenvolvimento e Assistência Social', url: 'https://www.gov.br/mds/pt-br/acoes-e-programas/bolsa-familia/informes/informe-bolsa-familia-112' }],
       avaliar: function (ctx) {
-        if (ctx.rendaPorPessoa > ctx.sm / 2) { return nao; }
-        if (ctx.cadastro === 'atualizado') { return { situacao: 'tem', motivo: 'O cadastro está em dia. Mantenha atualizado.' }; }
+        if (ctx.rendaPorPessoa > ctx.sm / 2) { return NAO; }
+        if (ctx.cadastro === 'atualizado') { return { situacao: 'emdia', motivo: 'O cadastro está em dia. Atualize sempre que algo mudar.' }; }
         return { situacao: 'pode', motivo: ctx.cadastro === 'antigo' ? 'O cadastro precisa ser atualizado.' : 'A família ainda precisa se cadastrar.' };
       }
     },
@@ -51,14 +57,12 @@ window.Xandinho = window.Xandinho || {};
       comoPedir: 'É automática para quem tem o Cadastro Único em dia. A conta de luz precisa estar no nome de alguém da família cadastrada, e a cidade da conta precisa ser a mesma do cadastro.',
       documentos: [],
       onde: 'Automático na conta de luz. Dúvidas: atendimento da distribuidora de energia',
-      fonte: { titulo: 'Lei 15.235/2025 (Conjur)', url: 'https://www.conjur.com.br/?p=865386' },
-      consultadoEm: '11/2026',
+      fontes: [{ titulo: 'Lei 15.235/2025 (Planalto)', url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/l15235.htm' }],
       avaliar: function (ctx) {
-        if (!(ctx.rendaPorPessoa <= ctx.sm / 2 || ctx.recebeBPC)) { return nao; }
+        if (!(ctx.rendaPorPessoa <= ctx.sm / 2 || ctx.recebeBPC)) { return NAO; }
         var r = dependeDoCadastro(ctx);
         if (ctx.contaLuzNoNome !== 'sim') {
-          r.motivo = (r.motivo ? r.motivo + ' ' : '') + 'A conta de luz precisa estar no nome de alguém que mora na casa.';
-          r.situacao = 'pode';
+          r = { situacao: 'pode', motivo: (r.motivo ? r.motivo + ' ' : '') + 'A conta de luz precisa estar no nome de alguém que mora na casa.' };
         }
         return r;
       }
@@ -67,14 +71,13 @@ window.Xandinho = window.Xandinho || {};
       id: 'desconto-social-energia',
       categoria: 'direito',
       nome: 'Desconto na conta de luz',
-      oQueE: 'Desconto na conta de luz para consumo de até 120 kWh por mês.',
-      comoPedir: 'É automático para quem tem o Cadastro Único em dia e renda entre meio e um salário mínimo por pessoa.',
+      oQueE: 'Desconto na conta de luz para consumo de até 120 kWh por mês, para renda entre meio e um salário mínimo por pessoa.',
+      comoPedir: 'É automático para quem tem o Cadastro Único em dia.',
       documentos: [],
       onde: 'Automático na conta de luz',
-      fonte: { titulo: 'IstoÉ Dinheiro: Desconto social na conta de luz', url: 'https://istoedinheiro.com.br/desconto-social-na-conta-de-luz-veja-quem-tem-direito' },
-      consultadoEm: '11/2026',
+      fontes: [{ titulo: 'Lei 15.235/2025 (Planalto)', url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/l15235.htm' }],
       avaliar: function (ctx) {
-        if (ctx.recebeBPC || ctx.rendaPorPessoa <= ctx.sm / 2 || ctx.rendaPorPessoa > ctx.sm) { return nao; }
+        if (ctx.recebeBPC || ctx.rendaPorPessoa <= ctx.sm / 2 || ctx.rendaPorPessoa > ctx.sm) { return NAO; }
         return dependeDoCadastro(ctx);
       }
     },
@@ -82,33 +85,40 @@ window.Xandinho = window.Xandinho || {};
       id: 'tarifa-social-agua',
       categoria: 'direito',
       nome: 'Desconto na conta de água (Tarifa Social)',
-      oQueE: 'Desconto na conta de água. No Espírito Santo, até 75% para renda de até R$ 218 por pessoa e até 60% para renda até meio salário mínimo por pessoa.',
+      oQueE: 'Desconto na conta de água e esgoto. No Espírito Santo, até 75% para renda de até R$ 218 por pessoa e até 60% para renda até meio salário mínimo por pessoa.',
       comoPedir: 'Se o desconto não aparecer na conta, procure o atendimento da Cesan, ou o serviço de água da sua cidade, com os documentos abaixo.',
       documentos: ['Matrícula do imóvel na conta de água', 'Comprovante de residência', 'Documentos pessoais', 'Comprovante de inscrição no Cadastro Único'],
       onde: 'Atendimento da Cesan ou do serviço de água da sua cidade',
-      fonte: { titulo: 'Tribuna Online: lei dá direito a redução na conta de água para 260 mil famílias do ES', url: 'https://tribunaonline.com.br/economia/lei-da-direito-a-reducao-na-conta-de-agua-para-260-mil-familias-do-es-286834' },
-      consultadoEm: '11/2026',
+      fontes: [
+        { titulo: 'Lei 14.898/2024 (Planalto)', url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/lei/L14898.htm' },
+        { titulo: 'Faixas do ES: Tribuna Online, com dados da Arsp', url: 'https://tribunaonline.com.br/economia/lei-da-direito-a-reducao-na-conta-de-agua-para-260-mil-familias-do-es-286834' }
+      ],
       avaliar: function (ctx) {
-        if (!(ctx.rendaPorPessoa <= ctx.sm / 2 || ctx.recebeBPC)) { return nao; }
-        return dependeDoCadastro(ctx, ctx.rendaPorPessoa <= 218 ? 'Pela renda informada, a faixa é de até 75% de desconto.' : 'Pela renda informada, a faixa é de até 60% de desconto.');
+        if (!(ctx.rendaPorPessoa <= ctx.sm / 2 || ctx.recebeBPC)) { return NAO; }
+        return dependeDoCadastro(ctx, {
+          situacao: 'tem',
+          motivo: ctx.rendaPorPessoa <= 218 ? 'Pela renda informada, a faixa é de até 75% de desconto.' : 'Pela renda informada, a faixa é de até 60% de desconto.'
+        });
       }
     },
     {
       id: 'gas-do-povo',
       categoria: 'direito',
       nome: 'Gás de cozinha gratuito (Gás do Povo)',
-      oQueE: 'Recarga gratuita do botijão de 13 kg, de 4 a 6 vezes por ano, conforme o tamanho da família.',
-      comoPedir: 'Não há inscrição própria: a seleção usa o Cadastro Único. Consulte se foi selecionado no aplicativo Meu Social ou no telefone da Caixa (0800 726 0207).',
-      documentos: ['Cartão do Bolsa Família ou cartão de débito da Caixa, na hora da retirada', 'Um botijão vazio'],
-      onde: 'Revendas de gás credenciadas',
-      fonte: { titulo: 'Correio 24 Horas: Gás do Povo, regras e retirada', url: 'https://www.correio24horas.com.br/economia/gas-do-povo-libera-novos-vales-no-dia-10-mas-quem-nao-fizer-a-troca-a-tempo-perde-a-recarga-1126' },
-      consultadoEm: '11/2026',
+      oQueE: 'Recarga gratuita do botijão de 13 kg para famílias do Bolsa Família com pelo menos duas pessoas.',
+      comoPedir: 'Não há inscrição própria: a seleção é feita pelo governo, todo mês. Consulte pelo CPF do responsável familiar no aplicativo Meu Social, na página do programa ou no telefone da Caixa (0800 726 0207).',
+      documentos: ['Cartão do Bolsa Família com chip ou código enviado ao celular, na hora da retirada', 'Um botijão vazio'],
+      onde: 'Revendas de gás credenciadas no programa',
+      fontes: [{ titulo: 'Programa Gás do Povo (gov.br)', url: 'https://www.gov.br/pt-br/servicos/programa-gas-do-povo' }],
       avaliar: function (ctx) {
-        if (ctx.rendaPorPessoa > ctx.sm / 2 || ctx.pessoas < 2) { return nao; }
-        var r = dependeDoCadastro(ctx);
-        r.situacao = 'pode';
-        r.motivo = (r.motivo ? r.motivo + ' ' : '') + 'A seleção não é automática: famílias do Bolsa Família têm prioridade.';
-        return r;
+        if (ctx.pessoas < 2 || ctx.rendaPorPessoa > ctx.sm / 2) { return NAO; }
+        if (ctx.bolsaFamilia === 'sim') {
+          if (ctx.cadastro !== 'atualizado') { return dependeDoCadastro(ctx); }
+          return { situacao: 'conferir', motivo: 'A seleção é feita todo mês pelo governo. Consulte se a família foi selecionada.' };
+        }
+        if (ctx.bolsaFamilia === 'naosei') { return { situacao: 'conferir', motivo: 'É só para famílias que recebem o Bolsa Família.' }; }
+        if (ctx.rendaPorPessoa <= 218) { return { situacao: 'pode', motivo: 'Primeiro, a família precisa entrar no Bolsa Família.' }; }
+        return NAO;
       }
     },
     {
@@ -119,10 +129,10 @@ window.Xandinho = window.Xandinho || {};
       comoPedir: 'A família precisa estar no Cadastro Único. A seleção é feita pelo governo a partir do cadastro, e é preciso cumprir compromissos de saúde e educação.',
       documentos: ['Os mesmos do Cadastro Único'],
       onde: 'CRAS da sua cidade',
-      fonte: { titulo: 'Ministério do Desenvolvimento e Assistência Social', url: 'https://www.gov.br/mds/pt-br/acoes-e-programas/bolsa-familia/informes/informe-bolsa-familia-112' },
-      consultadoEm: '11/2026',
+      fontes: [{ titulo: 'Ministério do Desenvolvimento e Assistência Social', url: 'https://www.gov.br/mds/pt-br/acoes-e-programas/bolsa-familia/informes/informe-bolsa-familia-112' }],
       avaliar: function (ctx) {
-        if (ctx.rendaPorPessoa > 218) { return nao; }
+        if (ctx.bolsaFamilia === 'sim') { return { situacao: 'emdia', motivo: 'A família já recebe. Mantenha o Cadastro Único atualizado para não perder.' }; }
+        if (ctx.rendaPorPessoa > 218) { return NAO; }
         return dependeDoCadastro(ctx);
       }
     },
@@ -131,14 +141,13 @@ window.Xandinho = window.Xandinho || {};
       categoria: 'direito',
       nome: 'Benefício para pessoa idosa (BPC)',
       oQueE: 'Um salário mínimo por mês para pessoas com 65 anos ou mais, de baixa renda, mesmo sem ter contribuído para o INSS.',
-      comoPedir: 'Peça pelo Meu INSS (site ou aplicativo) ou pelo telefone 135. A família precisa estar no Cadastro Único.',
+      comoPedir: 'Peça pelo Meu INSS (site ou aplicativo) ou pelo telefone 135. A família precisa estar no Cadastro Único. O pedido passa por análise do INSS.',
       documentos: ['Documento com foto e CPF da pessoa idosa', 'Cadastro Único atualizado'],
       onde: 'Meu INSS ou telefone 135',
-      fonte: { titulo: 'A Tarde: BPC em 2026', url: 'https://atarde.com.br/economia/bpc-mudou-com-o-salario-minimo-veja-quem-pode-receber-r-1621-em-2026-1403613' },
-      consultadoEm: '11/2026',
+      fontes: [{ titulo: 'Solicitar Benefício Assistencial ao Idoso (gov.br)', url: 'https://www.gov.br/pt-br/servicos/solicitar-beneficio-assistencial-ao-idoso' }],
       avaliar: function (ctx) {
-        if (!ctx.idoso65 || ctx.recebeBPC || ctx.rendaPorPessoa > ctx.sm / 4) { return nao; }
-        return dependeDoCadastro(ctx, 'O pedido passa por análise do INSS.');
+        if (!ctx.idoso65 || ctx.recebeBPC || ctx.rendaPorPessoa > ctx.sm / 4) { return NAO; }
+        return dependeDoCadastro(ctx);
       }
     },
     {
@@ -149,14 +158,10 @@ window.Xandinho = window.Xandinho || {};
       comoPedir: 'Peça pelo Meu INSS ou pelo telefone 135. Há avaliação médica e social. A família precisa estar no Cadastro Único.',
       documentos: ['Documento com foto e CPF', 'Laudos e exames médicos', 'Cadastro Único atualizado'],
       onde: 'Meu INSS ou telefone 135',
-      fonte: { titulo: 'A Tarde: BPC em 2026', url: 'https://atarde.com.br/economia/bpc-mudou-com-o-salario-minimo-veja-quem-pode-receber-r-1621-em-2026-1403613' },
-      consultadoEm: '11/2026',
+      fontes: [{ titulo: 'Solicitar Benefício Assistencial à Pessoa com Deficiência (gov.br)', url: 'https://www.gov.br/pt-br/servicos/solicitar-beneficio-assistencial-a-pessoa-com-deficiencia' }],
       avaliar: function (ctx) {
-        if (!ctx.deficiencia || ctx.recebeBPC || ctx.rendaPorPessoa > ctx.sm / 4) { return nao; }
-        var r = dependeDoCadastro(ctx);
-        r.situacao = 'pode';
-        r.motivo = (r.motivo ? r.motivo + ' ' : '') + 'O direito depende da avaliação médica e social do INSS.';
-        return r;
+        if (!ctx.deficiencia || ctx.recebeBPC || ctx.rendaPorPessoa > ctx.sm / 4) { return NAO; }
+        return dependeDoCadastro(ctx, { situacao: 'conferir', motivo: 'O direito depende da avaliação médica e social do INSS.' });
       }
     },
     {
@@ -164,13 +169,12 @@ window.Xandinho = window.Xandinho || {};
       categoria: 'direito',
       nome: 'Poupança do ensino médio (Pé-de-Meia)',
       oQueE: 'Poupança para estudantes do ensino médio público, que pode somar até R$ 9.200 até a formatura.',
-      comoPedir: 'É automático para estudantes de 14 a 24 anos do ensino médio público com família no Cadastro Único. É preciso ter frequência de pelo menos 80% nas aulas. Consulte no aplicativo Caixa Tem.',
+      comoPedir: 'É automático para estudantes de 14 a 24 anos do ensino médio público com família no Cadastro Único. É preciso ter frequência de pelo menos 80% nas aulas. O estudante consulta a situação na página do programa, com a conta gov.br.',
       documentos: ['CPF do estudante regular', 'Dados da matrícula iguais aos do Cadastro Único'],
-      onde: 'Escola e aplicativo Caixa Tem',
-      fonte: { titulo: 'Seu Dinheiro: Pé-de-Meia, quem tem direito', url: 'https://www.seudinheiro.com/2026/economia/pe-de-meia-pago-hoje-data-de-agosto-isca/' },
-      consultadoEm: '11/2026',
+      onde: 'Escola e página do Pé-de-Meia no MEC',
+      fontes: [{ titulo: 'Pé-de-Meia (Ministério da Educação)', url: 'https://www.gov.br/mec/pt-br/pe-de-meia' }],
       avaliar: function (ctx) {
-        if (!ctx.estudante || ctx.rendaPorPessoa > ctx.sm / 2) { return nao; }
+        if (!ctx.estudante || ctx.rendaPorPessoa > ctx.sm / 2) { return NAO; }
         return dependeDoCadastro(ctx);
       }
     },
@@ -181,17 +185,14 @@ window.Xandinho = window.Xandinho || {};
       oQueE: 'Garante duas vagas gratuitas por ônibus interestadual ou, se estiverem ocupadas, pelo menos 50% de desconto na passagem.',
       comoPedir: 'Peça a Carteira da Pessoa Idosa pela internet, com a conta gov.br, ou no CRAS. Vale por 2 anos.',
       documentos: ['Conta gov.br ou documento com foto', 'Cadastro Único atualizado'],
-      onde: 'Site da Carteira da Pessoa Idosa (gov.br) ou CRAS',
-      fonte: { titulo: 'Sampi: Carteira da Pessoa Idosa', url: 'https://sampi.net.br/nacional/noticias/3004618/brasil-e-mundo/2026/09/tem-60-anos-veja-como-e-se-pode-solicitar-a-carteira-do-idoso' },
-      consultadoEm: '11/2026',
+      onde: 'Site da Carteira da Pessoa Idosa ou CRAS',
+      fontes: [{ titulo: 'Emitir Carteira da Pessoa Idosa (gov.br)', url: 'https://www.gov.br/pt-br/servicos/adquirir-carteira-do-idoso' }],
       avaliar: function (ctx) {
-        if (!ctx.idoso60 || ctx.idosoRendaAte2SM === false) { return nao; }
-        var r = dependeDoCadastro(ctx);
+        if (!ctx.idoso60 || ctx.idosoRendaAte2SM === false) { return NAO; }
         if (ctx.idosoRendaAte2SM === null) {
-          r.situacao = 'pode';
-          r.motivo = (r.motivo ? r.motivo + ' ' : '') + 'A renda da pessoa idosa precisa ser de até 2 salários mínimos.';
+          return dependeDoCadastro(ctx, { situacao: 'conferir', motivo: 'A renda da pessoa idosa precisa ser de até 2 salários mínimos.' });
         }
-        return r;
+        return dependeDoCadastro(ctx);
       }
     },
     {
@@ -202,12 +203,11 @@ window.Xandinho = window.Xandinho || {};
       comoPedir: 'Vale para qualquer pessoa, sem limite de renda. Leve a receita a uma farmácia com o selo "Aqui Tem Farmácia Popular".',
       documentos: ['Receita médica válida, do SUS ou particular', 'Documento com foto e CPF'],
       onde: 'Farmácias com o selo "Aqui Tem Farmácia Popular"',
-      fonte: { titulo: 'Estado de Minas: Farmácia Popular em 2026', url: 'https://www.em.com.br/emfoco/2026/08/04/farmacia-popular-entrega-41-medicamentos-e-itens-de-graca-para-toda-a-populacao-veja-o-que-levar/' },
-      consultadoEm: '11/2026',
+      fontes: [{ titulo: 'Farmácia Popular (Ministério da Saúde)', url: 'https://www.gov.br/saude/pt-br/composicao/sectics/farmacia-popular' }],
       avaliar: function (ctx) {
         if (ctx.remedio === 'sim') { return { situacao: 'tem', motivo: 'Confira se o seu remédio está na lista do programa.' }; }
-        if (ctx.remedio === 'naosei') { return { situacao: 'pode', motivo: 'Vale para quem usa remédio contínuo da lista do programa.' }; }
-        return nao;
+        if (ctx.remedio === 'naosei') { return { situacao: 'conferir', motivo: 'Vale para quem usa remédio contínuo da lista do programa.' }; }
+        return NAO;
       }
     },
     {
@@ -215,15 +215,14 @@ window.Xandinho = window.Xandinho || {};
       categoria: 'oportunidade',
       nome: 'Microcrédito produtivo orientado',
       oQueE: 'Crédito para o negócio com juros menores que os do cartão e orientação de um agente de crédito. Vai até R$ 21 mil por instituição.',
-      comoPedir: 'Procure um agente de crédito. No ES, há o Nossocrédito (prefeituras e Banestes), as cooperativas Sicoob e, no norte do estado, o Crediamigo. A aprovação depende de análise da instituição.',
+      comoPedir: 'Procure um agente de crédito. No ES, há o Nossocrédito (prefeituras e Banestes), as cooperativas Sicoob e, no norte do estado, o Crediamigo.',
       documentos: ['Documento com foto e CPF', 'Comprovante de residência', 'Certificado do MEI, se tiver', 'Extrato ou anotações das vendas'],
       onde: 'Agente de crédito do Nossocrédito na prefeitura, Sicoob ou Banco do Nordeste',
-      fonte: { titulo: 'Resolução CMN 4.854/2020', url: 'https://www.legisweb.com.br/legislacao/?id=401868' },
-      consultadoEm: '11/2026',
+      fontes: [{ titulo: 'Texto da Resolução CMN 4.854/2020 (LegisWeb)', url: 'https://www.legisweb.com.br/legislacao/?id=401868' }],
       avaliar: function (ctx) {
-        if (ctx.negocio !== 'cnpj' && ctx.negocio !== 'semcnpj') { return nao; }
-        if (ctx.faturamentoAte360 === false || ctx.dividasAcima80) { return nao; }
-        return { situacao: 'pode', motivo: 'Depende de análise e aprovação da instituição.' };
+        if (ctx.negocio !== 'cnpj' && ctx.negocio !== 'semcnpj') { return NAO; }
+        if (ctx.faturamentoAte360 === false || ctx.dividasAcima80) { return NAO; }
+        return { situacao: 'conferir', motivo: 'Depende de análise e aprovação da instituição.' };
       }
     },
     {
@@ -234,14 +233,14 @@ window.Xandinho = window.Xandinho || {};
       comoPedir: 'Acesse o site do Sebrae ou procure uma unidade do Sebrae ES.',
       documentos: [],
       onde: 'Site do Sebrae ou unidades do Sebrae ES',
-      fonte: { titulo: 'Sebrae', url: 'https://sebrae.com.br' },
-      consultadoEm: '11/2026',
+      fontes: [{ titulo: 'Sebrae', url: 'https://sebrae.com.br' }],
       avaliar: function (ctx) {
-        return ctx.negocio === 'nao' ? nao : { situacao: 'tem', motivo: null };
+        return ctx.negocio === 'nao' ? NAO : { situacao: 'tem', motivo: null };
       }
     }
   ];
 
+  /* Avalia todo o catálogo e devolve cada item com a sua situação. */
   Xandinho.avaliarDireitos = function (ctx) {
     return Xandinho.direitos.map(function (item) {
       var r = item.avaliar(ctx);
