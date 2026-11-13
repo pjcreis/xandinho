@@ -74,4 +74,4 @@ Todo relatório termina com um aviso: a orientação é automática, baseada nas
 
 ## Vídeo pitch
 
-Link a incluir.
+https://youtu.be/Ps21oWqzNiU
