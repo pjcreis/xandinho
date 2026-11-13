@@ -66,11 +66,11 @@ Todo relatório termina com um aviso: a orientação é automática, baseada nas
 
 | Nome | RM |
 | --- | --- |
-| Integrante 1 | 000000 |
-| Integrante 2 | 000000 |
-| Integrante 3 | 000000 |
-| Integrante 4 | 000000 |
-| Integrante 5 | 000000 |
+| Carlos Emmanuel Barbosa da Silva | RM 572114 |
+| Matheus Henrique Prioli | RM 573619 |
+| Pedro Jorge Cardoso Reis | RM 573144 |
+| Rodrigo Macimo da Silva | RM 572581 |
+| Murilo Vieira Nascimento | RM 571584 |
 
 ## Vídeo pitch
 
