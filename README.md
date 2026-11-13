@@ -9,7 +9,8 @@ O relatório é uma orientação automática. Ele não garante o acesso a nenhum
 1. Baixe ou clone a pasta do projeto.
 2. Abra o arquivo `index.html` direto no navegador.
 
-Site publicado: link a incluir (GitHub Pages).
+Site publicado: https://pjcreis.github.io/xandinho/
+Repositório: https://github.com/pjcreis/xandinho
 
 ## Estrutura
 
@@ -30,7 +31,7 @@ img/             Avatar do Xandinho e favicon
 
 ## Tecnologias
 
-HTML, CSS e JavaScript puros, sem frameworks. Fontes Bricolage Grotesque e Atkinson Hyperlegible, do Google Fonts.
+HTML, CSS e JavaScript puros, sem frameworks. Fontes Bricolage Grotesque e Atkinson Hyperlegible, do Google Fonts. Uso de IA para apoio no refinamento da ideia e pesquisas diversas.
 
 ## Como o protótipo atende aos requisitos
 
